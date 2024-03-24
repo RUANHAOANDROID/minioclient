@@ -14,8 +14,6 @@ const ServerUrl = "192.168.8.6:9768"
 const AccessKey = "ELUGN04RII6WD4K59DEM"
 const SecretKey = "ObhJpLZ6dNvR1sw2ZOU8EgvFCC9yuzEZIqS+m+Ul"
 const Bucket = "uchi"
-const Portrait = "portrait"
-const Landscape = "landscape"
 
 // 初始化 MinIO 客户端
 var minioClient *minio.Client
@@ -36,7 +34,7 @@ func main() {
 	// 初始化 Gin 路由
 	r := gin.Default()
 	// 定义路由
-	r.GET("/list/:type", handleListObjects)
+	r.GET("/list", handleListObjects)
 	r.GET("/download/*objectName", handleDownloadObject)
 	// 启动服务
 	r.Run(":8080")
@@ -44,8 +42,7 @@ func main() {
 
 // 处理列出对象的请求
 func handleListObjects(c *gin.Context) {
-	deviceType := c.Param("type")
-	objectsCh := minioClient.ListObjects(c, Bucket, minio.ListObjectsOptions{Prefix: "apk/" + deviceType + "/"})
+	objectsCh := minioClient.ListObjects(c, Bucket, minio.ListObjectsOptions{Prefix: "闸机票务/icbc/"})
 
 	var objects []string
 	for object := range objectsCh {

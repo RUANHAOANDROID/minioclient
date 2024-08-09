@@ -4,15 +4,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"minioclient/api/controller"
-	"time"
+	"minioclient/config"
 )
 
-func RegisterRoutes(group *gin.RouterGroup, minioClient *minio.Client, timeout time.Duration) {
-	NewFileRouter(group, minioClient, timeout)
+func RegisterRoutes(group *gin.RouterGroup, minioClient *minio.Client, conf *config.Config) {
+	NewFileRouter(group, minioClient, conf)
 }
-func NewFileRouter(group *gin.RouterGroup, minioClient *minio.Client, timeout time.Duration) {
+func NewFileRouter(group *gin.RouterGroup, minioClient *minio.Client, conf *config.Config) {
 	fc := &controller.FileController{
-		MinIoClient: minioClient,
+		MinioClient: minioClient,
+		Conf:        conf,
 	}
 	group.POST("/List", fc.List)
 	group.POST("/Download/:oid", fc.Download)

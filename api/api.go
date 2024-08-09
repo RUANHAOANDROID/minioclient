@@ -25,6 +25,6 @@ func Setup(conf *config.Config, minoClient *minio.Client) error {
 	router.Use(middleware.ErrorHandler())
 	router.Use(middleware.LoggerMiddleware())
 	apiV1 := router.Group(ApiUri)
-	RegisterRoutes(apiV1, minoClient, conf.Options.Timeout)
+	RegisterRoutes(apiV1, minoClient, conf)
 	return router.Run(conf.Options.Port)
 }

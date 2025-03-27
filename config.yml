@@ -8,8 +8,8 @@ options:
 
 minio:
   address: "192.168.8.6:9768"
-  accessKey: "ELUGN04RII6WD4K59DEM"
-  secretKey: "ObhJpLZ6dNvR1sw2ZOU8EgvFCC9yuzEZIqS+m+Ul"
+  accessKey: "X4flpuxB4O6jyoKLXbtK"
+  secretKey: "xWNz5hdaWTl0rZCumWxw3WqwnJwfnPM9rpykh0Kk"
   bucket: "uchi"
   token: ""
 

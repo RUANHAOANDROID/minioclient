@@ -17,7 +17,23 @@ type FileController struct {
 }
 
 func (c FileController) List(g *gin.Context) {
-	objectsCh := c.MinioClient.ListObjects(g, c.Conf.MinIO.Bucket, minio.ListObjectsOptions{Prefix: "prefix"})
+
+	type request struct {
+		Prefix string `json:"prefix"`
+		Suffix string `json:"suffix"`
+	}
+	var req request
+	err := g.ShouldBindJSON(&req)
+	if err != nil {
+		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println(req)
+	options := minio.ListObjectsOptions{Recursive: true}
+	if req.Prefix != "" {
+		options.Prefix = req.Prefix
+	}
+	objectsCh := c.MinioClient.ListObjects(g, c.Conf.MinIO.Bucket, options)
 
 	var objects []string
 	for object := range objectsCh {
@@ -25,9 +41,12 @@ func (c FileController) List(g *gin.Context) {
 			g.JSON(http.StatusInternalServerError, domain.RespError(object.Err.Error()))
 			return
 		}
+		if req.Suffix != object.Key[len(object.Key)-len(req.Suffix):] {
+			continue
+		}
 		objects = append(objects, object.Key)
 	}
-	g.JSON(http.StatusOK, objects)
+	g.JSON(http.StatusOK, domain.RespSuccess(objects))
 }
 
 func (c FileController) Download(g *gin.Context) {

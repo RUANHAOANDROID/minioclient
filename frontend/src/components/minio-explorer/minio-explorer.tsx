@@ -33,7 +33,7 @@ export default function MinioExplorer() {
   const { toast } = useToast();
   const {setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
-  const [buckets, setBuckets] = useState<{ name: string; creationDate: Date }[]>([]);
+  const [buckets, setBuckets] = useState<{ name: string;}[]>([]);
   const [currentBucket, setCurrentBucket] = useState<string>('');
   const [currentPath, setCurrentPath] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -73,6 +73,7 @@ export default function MinioExplorer() {
       setLoading(true);
       try {
         const fileList = await listObjects(currentBucket, currentPath);
+        console.log(fileList)
         setFiles(fileList);
       } catch (error) {
         console.error('Error loading files:', error);

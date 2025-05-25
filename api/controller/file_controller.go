@@ -17,15 +17,17 @@ type FileController struct {
 	Conf        *config.Config
 }
 type SimpleObjectInfo struct {
-	MD5          string `json:"md5"`
-	Name         string `json:"name"`
-	Size         int64  `json:"size"`
-	LastModified string `json:"lastModified"`
-	IsFolder     bool   `json:"isFolder"`
+	Key          string    `json:"key"`
+	Name         string    `json:"name"`
+	LastModified time.Time `json:"lastModified"`
+	Size         int64     `json:"size"`
+	Type         string    `json:"type"` // FileType 可用 string 表示
+	Path         string    `json:"path"`
+	IsFolder     bool      `json:"isFolder"`
 }
 
 func (c FileController) List(g *gin.Context) {
-	bucket := g.DefaultQuery("bucket", c.Conf.MinIO.Bucket)
+	bucket := g.GetString("bucket")
 	prefix := g.DefaultQuery("prefix", "") // 从URL参数获取prefix
 	options := minio.ListObjectsOptions{Prefix: prefix}
 	objectsCh := c.MinioClient.ListObjects(g, bucket, options)
@@ -37,19 +39,16 @@ func (c FileController) List(g *gin.Context) {
 			return
 		}
 		objects = append(objects, SimpleObjectInfo{
-			MD5:  object.ETag,
-			Name: object.Key,
-			Size: object.Size,
-			LastModified: func(t time.Time) string {
-				if t.IsZero() {
-					return ""
-				}
-				return t.Format("2006-01-02 15:04:05.000")
-			}(object.LastModified),
-			IsFolder: object.Size == 0 && object.Key[len(object.Key)-1:] == "/", // 判断是否为文件夹
+			Key:          object.ETag,
+			Name:         object.Key,
+			LastModified: object.LastModified,
+			Size:         object.Size,
+			Type:         "file",                                                    // 这里可根据实际类型判断赋值
+			Path:         object.Key,                                                // 或根据需要拼接路径
+			IsFolder:     object.Size == 0 && object.Key[len(object.Key)-1:] == "/", // 判断是否为文件夹
 		})
 	}
-	g.JSON(http.StatusOK, objects)
+	g.JSON(http.StatusOK, domain.RespSuccess(objects))
 }
 
 func (c FileController) Download(g *gin.Context) {

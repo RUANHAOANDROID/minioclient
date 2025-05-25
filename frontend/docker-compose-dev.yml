@@ -1,9 +1,0 @@
-services:
-  ahaodrop:
-    build:
-      context: .
-      dockerfile: DockerfileAIO
-    container_name: ahao-drop
-    ports:
-      - "80:80"
-    restart: unless-stopped

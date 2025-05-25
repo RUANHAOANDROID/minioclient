@@ -7,6 +7,7 @@ import keycloak from './lib/keycloak.ts'
 keycloak.init({
     onLoad: 'login-required',  // 自动要求用户登录
     checkLoginIframe: false    // 提高性能
+
 }).then(authenticated => {
     if (authenticated) {
         console.log('认证成功')

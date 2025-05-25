@@ -46,7 +46,6 @@ apiClient.interceptors.response.use(
 )
 // 获取对象列表
 export async function getObjects(bucket?: string, prefix?: string): Promise<ApiResponse<MinioObject[]>> {
-    console.log("listObjects", bucket, prefix);
     const resp = await apiClient.get("/api/v1/list", { params: { bucket, prefix } });
     return resp.data;
 }

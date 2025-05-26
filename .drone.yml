@@ -21,7 +21,7 @@ steps:
       - docker --version
       - docker login -u "$DOCKER_USER" -p "$DOCKER_PWD".    # login to docker hub
       - docker buildx create --name aBuildX --use      # Create and use a Buildx builder
-      - docker buildx build --platform linux/amd64 -f Dockerfile -t hao88/ahao-drop:amd64 --push . # Build and push multi-arch images
+      - docker buildx build --platform linux/amd64 -f Dockerfile -t hao88/ahao-drop:amd64  --push . # Build and push multi-arch images
       - docker buildx rm aBuildX  # Remove the Buildx builder
 volumes:
   - name: docker

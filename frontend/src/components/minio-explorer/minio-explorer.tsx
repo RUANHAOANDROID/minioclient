@@ -256,9 +256,23 @@ export default function MinioExplorer() {
             console.log('Deleting file:', file);
             await deleteFile(currentBucket, file.key);
 
-            // 刷新文件列表
+            // 删除后，重新获取当前路径下的文件列表
             const fileList = await listObjects(currentBucket, currentPath);
-            setFiles(fileList);
+            if (fileList.length === 0 && currentPath) {
+                // 条件1: 文件列表为空，并且 currentPath 不是根路径 (currentPath 不为空字符串)
+                // 计算父路径
+                const lastIndex = currentPath.lastIndexOf('/');
+                const parentPath = lastIndex === -1 ? '' : currentPath.substring(0, lastIndex);
+
+                // 设置当前路径为父路径，这将触发 useEffect 来加载父路径的文件
+                setCurrentPath(parentPath);
+            } else {
+                // 条件2或3:
+                // - 文件列表不为空，则更新当前视图的文件。
+                // - 文件列表为空，并且 currentPath 是根路径 (currentPath 为空字符串)，
+                //   设置 files 为空数组，这将导致 EmptyState 显示。
+                setFiles(fileList);
+            }
 
             toast({
                 title: "删除成功",
@@ -424,7 +438,7 @@ export default function MinioExplorer() {
                                     onNavigate={handleNavigate}
                                 />
 
-                                {filteredFiles.length === 0 ? (
+                                {(!filteredFiles || filteredFiles.length === 0) ? (
                                     <EmptyState
                                         isFiltered={searchTerm.length > 0}
                                         onClearFilter={() => setSearchTerm('')}

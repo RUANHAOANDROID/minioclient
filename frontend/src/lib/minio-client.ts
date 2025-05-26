@@ -30,11 +30,11 @@ export async function uploadFile(
 // Download a file from MinIO
 export async function downloadFile(
     bucket: string,
-    objectName: string,
+    object: string,
     onProgress?: (progress: number) => void
 ): Promise<Blob> {
-    console.log(bucket, objectName, onProgress);
-    return downloadObjectWithProgress(objectName);
+    console.log(bucket, object, onProgress);
+    return downloadObjectWithProgress(bucket,object);
 }
 
 // Delete a file from MinIO

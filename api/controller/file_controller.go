@@ -96,8 +96,8 @@ func (c FileController) Download(g *gin.Context) {
 }
 
 func (c FileController) DownloadWithProgress(g *gin.Context) {
-	objName := g.Param("name")
-	bucket := c.Conf.MinIO.Bucket
+	objName := g.DefaultQuery("object", "")
+	bucket := g.DefaultQuery("bucket", "")
 	options := minio.GetObjectOptions{}
 	object, err := c.MinioClient.GetObject(g, bucket, objName, options)
 	if err != nil {

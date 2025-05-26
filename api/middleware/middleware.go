@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"minioclient/domain"
@@ -67,9 +66,9 @@ func LoggerMiddleware() gin.HandlerFunc {
 		//status := c.Writer.Status()
 
 		//fmt.Printf("Request: %s %s\n", c.Request.Method, c.Request.URL.Path)
-		fmt.Printf("[GIN] Request Body: %s\n", string(requestBodyBytes))
+		//fmt.Printf("[GIN] Request Body: %s\n", string(requestBodyBytes))
 		//fmt.Printf("Response: %d\n", status)
-		fmt.Printf("[GIN] Response Body: %s\n", responseBody.String())
+		//fmt.Printf("[GIN] Response Body: %s\n", responseBody.String())
 		//fmt.Printf("Latency: %v\n", latency)
 	}
 }

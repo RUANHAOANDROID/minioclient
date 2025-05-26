@@ -52,15 +52,13 @@ export async function getObjects(bucket?: string, prefix?: string): Promise<ApiR
     return resp.data;
 }
 
-// 下载对象（普通下载，参数为 oid）
-export async function downloadObject(oid: string): Promise<Blob> {
-    const resp = await apiClient.get(`/download/${oid}`, {responseType: "blob"});
-    return resp.data;
-}
 
-// 下载对象（带进度，参数为 oid）
-export async function downloadObjectWithProgress(oid: string): Promise<Blob> {
-    const resp = await apiClient.get(`/download-p/${oid}`, {responseType: "blob"});
+// 下载对象（带进度，参数为 object）
+export async function downloadObjectWithProgress(bucket:string,object: string): Promise<Blob> {
+    const resp = await apiClient.get(`/api/v1/download`, {
+        params: {bucket, object},
+        responseType: "blob"
+    });
     return resp.data;
 }
 

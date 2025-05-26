@@ -1,6 +1,8 @@
 import {MinioBucket, MinioObject} from '@/types/minio';
 import keycloak from "@/lib/keycloak.ts";
-import {deleteObject, getObjects, uploadObject} from "@/lib/api.ts";
+import {deleteObject, downloadObjectWithProgress, getObjects, uploadObject} from "@/lib/api.ts";
+import {ApiResponse} from "@/types/ApiResponse.ts";
+import {UploadResponse} from "@/types/UploadResponse.ts";
 
 // 列出所有 buckets，返回 MinioBucket[]
 export async function listBuckets(): Promise<MinioBucket[]> {
@@ -21,8 +23,8 @@ export async function uploadFile(
     path: string,
     file: File,
     onProgress?: (progress: number) => void
-): Promise<void> {
-    uploadObject(bucket, path, file , onProgress)
+): Promise<ApiResponse<UploadResponse>> {
+    return uploadObject(bucket, path, file , onProgress)
 }
 
 // Download a file from MinIO
@@ -32,8 +34,7 @@ export async function downloadFile(
     onProgress?: (progress: number) => void
 ): Promise<Blob> {
     console.log(bucket, objectName, onProgress);
-    //TODO
-    return new Blob(); // 模拟返回一个空的 Blob 对象
+    return downloadObjectWithProgress(objectName);
 }
 
 // Delete a file from MinIO

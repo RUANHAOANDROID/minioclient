@@ -177,27 +177,21 @@ export default function MinioExplorer() {
                     progress: 0,
                     type: 'upload'
                 });
-                await uploadFile(currentBucket, currentPath, file, (progress) => {
+                const resp =await uploadFile(currentBucket, currentPath, file, (progress) => {
                     setProgressInfo(prev => prev ? {
                         ...prev,
                         progress: Math.round(progress)
                     } : null);
-                });
+                })
+                console.log(resp);
+                const fileList = await listObjects(currentBucket, currentPath);
+                setFiles(fileList);
             }
-
-            // 刷新文件列表
-            const fileList = await listObjects(currentBucket, currentPath);
-            setFiles(fileList);
-
-            toast({
-                title: "上传成功",
-                description: "文件已成功上传。",
-            });
         } catch (error) {
             console.error('Error uploading files:', error);
             toast({
                 title: "上传失败",
-                description: "文件上传失败。",
+                description: error.message,
                 variant: "destructive",
             });
         } finally {

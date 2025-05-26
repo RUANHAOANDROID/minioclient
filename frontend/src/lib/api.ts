@@ -2,6 +2,7 @@ import keycloak from "@/lib/keycloak.ts";
 import axios from "axios";
 import {ApiResponse} from "@/types/ApiResponse.ts";
 import {MinioObject} from "@/types/minio.ts";
+import {UploadResponse} from "@/types/UploadResponse.ts";
 
 // 定义基本的 Axios 配置
 const baseURL = `${window.location.protocol}//${window.location.host}`;
@@ -78,7 +79,7 @@ export async function uploadObject(
     prefix?: string,
     file: File,
     onProgress?: (percentage: number) => void
-): Promise<ApiResponse<string>> {
+): Promise<ApiResponse<UploadResponse>> {
     const formData = new FormData();
     formData.append("file", file);
     console.log(file.name);
@@ -101,5 +102,3 @@ export async function uploadObject(
     });
     return resp.data;
 }
-
-export {apiClient as api};

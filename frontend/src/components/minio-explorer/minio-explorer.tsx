@@ -33,7 +33,7 @@ export default function MinioExplorer() {
     const [currentBucket, setCurrentBucket] = useState<string>('');
     const [currentPath, setCurrentPath] = useState<string>('');
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [loading, setLoading] = useState<boolean>(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(true);
     const [files, setFiles] = useState<MinioObject[]>([]);

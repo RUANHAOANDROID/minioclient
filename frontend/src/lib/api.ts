@@ -6,6 +6,7 @@ import {UploadResponse} from "@/types/UploadResponse.ts";
 
 // 定义基本的 Axios 配置
 const baseURL = `${window.location.protocol}//${window.location.host}`;
+
 const apiClient = axios.create({
     baseURL: baseURL,
     headers: {

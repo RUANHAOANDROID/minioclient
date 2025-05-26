@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import keycloak from '@/lib/keycloak.ts';
+import {getCurrentBucket, storeCurrentBucket} from "@/lib/bucket-store.ts";
 
 // 添加进度类型定义
 interface ProgressInfo {
@@ -40,7 +41,7 @@ export default function MinioExplorer() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [loading, setLoading] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(true);
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<MinioObject[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // 添加进度状态
   const [progressInfo, setProgressInfo] = useState<ProgressInfo | null>(null);
@@ -52,7 +53,12 @@ export default function MinioExplorer() {
         const bucketList = await listBuckets();
         setBuckets(bucketList);
         if (bucketList.length > 0) {
-          setCurrentBucket(bucketList[0].name);
+          let localBucket = getCurrentBucket();
+          if (localBucket!== null && bucketList.some(bucket => bucket.name === localBucket)) {
+            setCurrentBucket(localBucket);
+          }else {
+            setCurrentBucket(bucketList[0].name);
+          }
         }
       } catch (error) {
         console.error('Error loading buckets:', error);
@@ -97,7 +103,7 @@ export default function MinioExplorer() {
   // 根据搜索词过滤文件
   const filteredFiles = useMemo(() => {
     if (!searchTerm) return files;
-    return files.filter(file => 
+    return files.filter(file =>
       file.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [files, searchTerm]);
@@ -105,10 +111,10 @@ export default function MinioExplorer() {
   // 生成面包屑导航路径
   const breadcrumbPaths = useMemo(() => {
     if (!currentPath) return [];
-    
+
     const paths: MinioPath[] = [];
     const parts = currentPath.split('/').filter(Boolean);
-    
+
     let cumulativePath = '';
     for (let i = 0; i < parts.length; i++) {
       cumulativePath += parts[i] + '/';
@@ -118,12 +124,13 @@ export default function MinioExplorer() {
         isRoot: i === 0,
       });
     }
-    
+
     return paths;
   }, [currentPath]);
 
   const handleBucketChange = (bucket: string) => {
     setCurrentBucket(bucket);
+    storeCurrentBucket(bucket);
     setCurrentPath('');
     setSearchTerm('');
   };
@@ -169,7 +176,7 @@ export default function MinioExplorer() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const objectName = currentPath ? `${currentPath}${file.name}` : file.name;
-        
+
         // 设置上传进度状态
         setProgressInfo({
           fileName: file.name,
@@ -184,11 +191,11 @@ export default function MinioExplorer() {
           } : null);
         });
       }
-      
+
       // 刷新文件列表
       const fileList = await listObjects(currentBucket, currentPath);
       setFiles(fileList);
-      
+
       toast({
         title: "上传成功",
         description: "文件已成功上传。",
@@ -211,7 +218,7 @@ export default function MinioExplorer() {
 
   const handleDownload = async (file: MinioObject) => {
     if (!currentBucket || file.isFolder) return;
-    
+
     setLoading(true);
     try {
       // 设置下载进度状态
@@ -236,7 +243,7 @@ export default function MinioExplorer() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast({
         title: "下载成功",
         description: "文件已开始下载。",
@@ -256,15 +263,16 @@ export default function MinioExplorer() {
 
   const handleDelete = async (file: MinioObject) => {
     if (!currentBucket) return;
-    
+
     setLoading(true);
     try {
+      console.log('Deleting file:', file);
       await deleteFile(currentBucket, file.key);
-      
+
       // 刷新文件列表
       const fileList = await listObjects(currentBucket, currentPath);
       setFiles(fileList);
-      
+
       toast({
         title: "删除成功",
         description: "文件已成功删除。",
@@ -414,7 +422,7 @@ export default function MinioExplorer() {
               </div>
             </div>
           </div>
-          
+
           {/* 文件显示区 */}
           <div className="flex-1 w-full overflow-auto">
             <div className="h-full w-full px-6 py-3">
@@ -426,8 +434,8 @@ export default function MinioExplorer() {
                 />
 
                 {filteredFiles.length === 0 ? (
-                  <EmptyState 
-                    isFiltered={searchTerm.length > 0} 
+                  <EmptyState
+                    isFiltered={searchTerm.length > 0}
                     onClearFilter={() => setSearchTerm('')}
                   />
                 ) : (

@@ -1,6 +1,6 @@
 import {MinioBucket, MinioObject} from '@/types/minio';
 import keycloak from "@/lib/keycloak.ts";
-import {getObjects} from "@/lib/api.ts";
+import {deleteObject, getObjects} from "@/lib/api.ts";
 
 // 列出所有 buckets，返回 MinioBucket[]
 export async function listBuckets(): Promise<MinioBucket[]> {
@@ -12,15 +12,7 @@ export async function listBuckets(): Promise<MinioBucket[]> {
 export async function listObjects(bucket: string, prefix: string = ''): Promise<MinioObject[]> {
     const resp = await getObjects(bucket, prefix);
     console.log(resp)
-    return resp.data.map((item: any) => ({
-        key: item.key,
-        name: item.name,
-        lastModified: new Date(item.lastModified),
-        size: item.size,
-        type: item.type,
-        path: item.path,
-        isFolder: item.isFolder,
-    }));
+    return resp.data;
 }
 
 // Upload a file to MinIO
@@ -48,5 +40,6 @@ export async function downloadFile(
 // Delete a file from MinIO
 export async function deleteFile(bucket: string, objectName: string): Promise<void> {
     console.log(bucket, objectName);
-    //TODO
+    const resp =await deleteObject(bucket, objectName);
+    return resp.data;
 }

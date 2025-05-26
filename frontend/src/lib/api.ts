@@ -63,8 +63,11 @@ export async function downloadObjectWithProgress(oid: string): Promise<Blob> {
 }
 
 // 删除对象
-export async function deleteObject(oid: string): Promise<ApiResponse<any>> {
-    const resp = await apiClient.delete(`/delete/${oid}`);
+export async function deleteObject(bucket:string,object: string): Promise<ApiResponse<any>> {
+    console.log("delete object",bucket, object);
+    const resp = await apiClient.delete("/api/v1/delete", {
+        params: { bucket, object }
+    });
     return resp.data;
 }
 

@@ -2,13 +2,16 @@ package controller
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"io"
 	"minioclient/config"
 	"minioclient/domain"
+	"minioclient/pkg"
 	"net/http"
+	"path"
 	"time"
 )
 
@@ -38,9 +41,16 @@ func (c FileController) List(g *gin.Context) {
 			g.JSON(http.StatusInternalServerError, domain.RespError(object.Err.Error()))
 			return
 		}
+
+		data, err := json.Marshal(object)
+		if err != nil {
+			pkg.Log.Println("JSON 序列化错误:", err)
+		} else {
+			pkg.Log.Println(string(data))
+		}
 		objects = append(objects, SimpleObjectInfo{
-			Key:          object.ETag,
-			Name:         object.Key,
+			Key:          object.Key,
+			Name:         path.Base(object.Key),
 			LastModified: object.LastModified,
 			Size:         object.Size,
 			Type:         "file",                                                    // 这里可根据实际类型判断赋值
@@ -106,7 +116,29 @@ func (c FileController) DownloadWithProgress(g *gin.Context) {
 	}
 }
 func (c FileController) Delete(g *gin.Context) {
+	// 从表单中获取桶名称
+	bucket := g.DefaultQuery("bucket", "")
+	if bucket == "" {
+		g.JSON(http.StatusBadRequest, domain.RespError("Bucket name is required"))
+		return
+	}
 
+	// 从表单中获取对象名称
+	objName := g.DefaultQuery("object", "")
+	if objName == "" {
+		g.JSON(http.StatusBadRequest, domain.RespError("Object name is required"))
+		return
+	}
+
+	// 删除对象
+	err := c.MinioClient.RemoveObject(g, bucket, objName, minio.RemoveObjectOptions{})
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, domain.RespError(err.Error()))
+		return
+	}
+
+	// 返回成功响应
+	g.JSON(http.StatusOK, domain.RespSuccess(fmt.Sprintf("Object %s deleted successfully from bucket %s", objName, bucket)))
 }
 
 func (c FileController) Upload(g *gin.Context) {

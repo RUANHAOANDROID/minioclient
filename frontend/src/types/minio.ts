@@ -7,6 +7,7 @@ export type FileType =
     | 'code'
     | 'pdf'
     | 'folder'
+    | 'apk'
     | 'other';
 
 export interface MinioObject {

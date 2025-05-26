@@ -18,6 +18,6 @@ func NewFileRouter(group *gin.RouterGroup, minioClient *minio.Client, conf *conf
 	group.GET("/list", fc.List)
 	group.GET("/download/:oid", fc.Download)
 	group.GET("/download-p/:oid", fc.DownloadWithProgress)
-	group.DELETE("/delete/:oid", fc.Delete)
+	group.DELETE("/delete", fc.Delete)
 	group.POST("/upload/:oid", fc.Upload)
 }

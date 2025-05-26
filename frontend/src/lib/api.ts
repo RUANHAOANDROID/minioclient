@@ -76,20 +76,18 @@ export async function deleteObject(bucket: string, object: string): Promise<ApiR
 // 上传对象（带进度监控）
 export async function uploadObject(
     bucket: string,
-    prefix?: string,
-    file: File,
+    prefix: string,
+    upFile: File,
     onProgress?: (percentage: number) => void
 ): Promise<ApiResponse<UploadResponse>> {
     const formData = new FormData();
-    formData.append("file", file);
-    console.log(file.name);
+    formData.append("file", upFile);
     // 构建查询参数
     const params = new URLSearchParams();
     params.append("bucket", bucket);
     if (prefix) {
         params.append("prefix", prefix);
     }
-    console.log(params);
     // 发送请求并监控进度
     const resp = await apiClient.post(`/api/v1/upload?${params.toString()}`, formData, {
         headers: {"Content-Type": "multipart/form-data"},

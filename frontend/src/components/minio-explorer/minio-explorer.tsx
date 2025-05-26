@@ -201,7 +201,7 @@ export default function MinioExplorer() {
             console.error('Error uploading files:', error);
             toast({
                 title: "上传失败",
-                description: error.message,
+                description: 'error',
                 variant: "destructive",
             });
         } finally {
@@ -276,7 +276,7 @@ export default function MinioExplorer() {
                 setCurrentPath(parentPath);
             } else {
                 setFiles(files);
-            } 
+            }
             toast({
                 title: "删除成功",
                 description: "文件已成功删除。",

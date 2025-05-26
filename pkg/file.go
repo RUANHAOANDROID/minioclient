@@ -9,17 +9,24 @@ import (
 func GetFileType(key string) string {
 	ext := strings.ToLower(path.Ext(key))
 	switch ext {
-	case ".txt":
-		return "text"
+	case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg":
+		return "image"
+	case ".mp4", ".avi", ".mov", ".mkv":
+		return "video"
+	case ".mp3", ".wav", ".flac":
+		return "audio"
+	case ".pdf":
+		return "pdf"
+	case ".txt", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx":
+		return "document"
+	case ".zip", ".rar", ".tar", ".gz", ".7z":
+		return "archive"
+	case ".go", ".js", ".ts", ".jsx", ".tsx", ".py", ".java", ".c", ".cpp", ".rb", ".php":
+		return "code"
 	case ".apk":
 		return "apk"
-	// 可以继续根据需求增加其他后缀类型
-	case ".jpg", ".jpeg", ".png", ".gif":
-		return "image"
-	case ".mp4", ".avi", ".mov":
-		return "video"
-	case ".mp3", ".wav":
-		return "audio"
+	case ".exe":
+		return "exe"
 	default:
 		return "other"
 	}

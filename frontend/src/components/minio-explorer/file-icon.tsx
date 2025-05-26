@@ -9,7 +9,8 @@ import {
     type LucideIcon,
     Music,
     Video,
-    Smartphone
+    Smartphone,
+    Monitor,
 } from 'lucide-react';
 import {ComponentProps} from 'react';
 
@@ -28,11 +29,11 @@ const iconMap: Record<FileType, LucideIcon> = {
     pdf: FileText,
     folder: Folder,
     apk: Smartphone,
+    exe: Monitor,
     other: FileIcon,
 };
 
 export function FileTypeIcon({type, size = 16, ...props}: FileIconProps) {
     const Icon = iconMap[type] || FileIcon;
-
     return <Icon size={size} {...props} />;
 }

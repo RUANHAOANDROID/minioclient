@@ -11,7 +11,6 @@ keycloak.init({
 }).then(authenticated => {
     if (authenticated) {
         console.log('认证成功')
-        console.log(keycloak.token)
         // 认证成功后渲染应用
         createRoot(document.getElementById('root')!).render(
             <StrictMode>

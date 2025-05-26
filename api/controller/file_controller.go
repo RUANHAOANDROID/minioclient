@@ -169,7 +169,7 @@ func (c FileController) Upload(g *gin.Context) {
 		Reader: file,
 		Total:  fileSize,
 		Callback: func(progress int64) {
-			pkg.Log.Printf("上传进度: %.2f%%\n", float64(progress)/float64(fileSize)*100)
+			fmt.Printf("上传进度: %.2f%%\n", float64(progress)/float64(fileSize)*100)
 		},
 	}
 

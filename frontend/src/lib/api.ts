@@ -6,7 +6,7 @@ import {MinioObject} from "@/types/minio.ts";
 // 定义基本的 Axios 配置
 const baseURL = `${window.location.protocol}//${window.location.host}`;
 const apiClient = axios.create({
-    baseURL: baseURL ,
+    baseURL: baseURL,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -44,41 +44,62 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 )
+
 // 获取对象列表
 export async function getObjects(bucket?: string, prefix?: string): Promise<ApiResponse<MinioObject[]>> {
-    const resp = await apiClient.get("/api/v1/list", { params: { bucket, prefix } });
+    const resp = await apiClient.get("/api/v1/list", {params: {bucket, prefix}});
     return resp.data;
 }
 
 // 下载对象（普通下载，参数为 oid）
 export async function downloadObject(oid: string): Promise<Blob> {
-    const resp = await apiClient.get(`/download/${oid}`, { responseType: "blob" });
+    const resp = await apiClient.get(`/download/${oid}`, {responseType: "blob"});
     return resp.data;
 }
 
 // 下载对象（带进度，参数为 oid）
 export async function downloadObjectWithProgress(oid: string): Promise<Blob> {
-    const resp = await apiClient.get(`/download-p/${oid}`, { responseType: "blob" });
+    const resp = await apiClient.get(`/download-p/${oid}`, {responseType: "blob"});
     return resp.data;
 }
 
 // 删除对象
-export async function deleteObject(bucket:string,object: string): Promise<ApiResponse<any>> {
-    console.log("delete object",bucket, object);
+export async function deleteObject(bucket: string, object: string): Promise<ApiResponse<string>> {
+    console.log("delete object", bucket, object);
     const resp = await apiClient.delete("/api/v1/delete", {
-        params: { bucket, object }
+        params: {bucket, object}
     });
     return resp.data;
 }
 
-// 上传对象
-export async function uploadObject(oid: string, file: File): Promise<ApiResponse<any>> {
+// 上传对象（带进度监控）
+export async function uploadObject(
+    bucket: string,
+    prefix?: string,
+    file: File,
+    onProgress?: (percentage: number) => void
+): Promise<ApiResponse<string>> {
     const formData = new FormData();
     formData.append("file", file);
-    const resp = await apiClient.post(`/upload/${oid}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+    console.log(file.name);
+    // 构建查询参数
+    const params = new URLSearchParams();
+    params.append("bucket", bucket);
+    if (prefix) {
+        params.append("prefix", prefix);
+    }
+    console.log(params);
+    // 发送请求并监控进度
+    const resp = await apiClient.post(`/api/v1/upload?${params.toString()}`, formData, {
+        headers: {"Content-Type": "multipart/form-data"},
+        onUploadProgress: (progressEvent) => {
+            if (onProgress && progressEvent.total) {
+                const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                onProgress(percentage);
+            }
+        }
     });
     return resp.data;
 }
 
-export { apiClient as api };
+export {apiClient as api};

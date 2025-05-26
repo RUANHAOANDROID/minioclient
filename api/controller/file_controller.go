@@ -142,5 +142,74 @@ func (c FileController) Delete(g *gin.Context) {
 }
 
 func (c FileController) Upload(g *gin.Context) {
+	// 从表单中获取桶名称
+	bucket := g.DefaultQuery("bucket", "")
 
+	// 获取对象路径前缀
+	prefix := g.DefaultQuery("prefix", "")
+
+	// 获取上传的文件
+	file, header, err := g.Request.FormFile("file")
+	if err != nil {
+		g.JSON(http.StatusBadRequest, domain.RespError("Failed to get file: "+err.Error()))
+		return
+	}
+	defer file.Close()
+
+	// 创建一个带有进度读取器的结构
+	fileSize := header.Size
+	progressReader := &ProgressReader{
+		Reader: file,
+		Total:  fileSize,
+		Callback: func(progress int64) {
+			pkg.Log.Printf("上传进度: %.2f%%\n", float64(progress)/float64(fileSize)*100)
+		},
+	}
+
+	// 构建对象名称
+	objectName := header.Filename
+	if prefix != "" {
+		objectName = "/" + prefix + "/" + objectName
+	}
+
+	// 设置上传选项
+	contentType := header.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	// 上传对象到 MinIO
+	info, err := c.MinioClient.PutObject(g.Request.Context(), bucket, objectName, progressReader, fileSize, minio.PutObjectOptions{
+		ContentType: contentType,
+	})
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, domain.RespError("Failed to upload file: "+err.Error()))
+		return
+	}
+
+	// 返回上传成功信息
+	g.JSON(http.StatusOK, domain.RespSuccess(map[string]interface{}{
+		"bucket":     info.Bucket,
+		"key":        info.Key,
+		"etag":       info.ETag,
+		"size":       info.Size,
+		"objectName": objectName,
+	}))
+}
+
+// ProgressReader 实现了 io.Reader 接口，用于跟踪读取进度
+type ProgressReader struct {
+	Reader    io.Reader
+	Total     int64
+	BytesRead int64 // 改为更具描述性的名称
+	Callback  func(int64)
+}
+
+func (pr *ProgressReader) Read(p []byte) (int, error) {
+	n, err := pr.Reader.Read(p)
+	pr.BytesRead += int64(n) // 正确引用字段
+	if pr.Callback != nil {
+		pr.Callback(pr.BytesRead) // 正确引用字段
+	}
+	return n, err
 }

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
@@ -12,6 +11,7 @@ import (
 	"minioclient/pkg"
 	"net/http"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -31,7 +31,7 @@ type SimpleObjectInfo struct {
 
 func (c FileController) List(g *gin.Context) {
 	bucket := g.GetString("bucket")
-	prefix := g.DefaultQuery("prefix", "") // 从URL参数获取prefix
+	prefix := g.DefaultQuery("prefix", "")
 	options := minio.ListObjectsOptions{Prefix: prefix}
 	objectsCh := c.MinioClient.ListObjects(g, bucket, options)
 
@@ -41,22 +41,23 @@ func (c FileController) List(g *gin.Context) {
 			g.JSON(http.StatusInternalServerError, domain.RespError(object.Err.Error()))
 			return
 		}
-
-		data, err := json.Marshal(object)
-		if err != nil {
-			pkg.Log.Println("JSON 序列化错误:", err)
-		} else {
-			pkg.Log.Println(string(data))
+		// 如果对象大小为 0 且关键字以 "/" 结尾，则认为是伪目录，直接跳过
+		if object.Size == 0 && strings.HasSuffix(object.Key, "/") {
+			if prefix == object.Key {
+				continue
+			}
 		}
-		objects = append(objects, SimpleObjectInfo{
+		isFolder := object.Size == 0 && strings.HasSuffix(object.Key, "/")
+		info := SimpleObjectInfo{
 			Key:          object.Key,
 			Name:         path.Base(object.Key),
 			LastModified: object.LastModified,
 			Size:         object.Size,
-			Type:         "file",                                                    // 这里可根据实际类型判断赋值
-			Path:         object.Key,                                                // 或根据需要拼接路径
-			IsFolder:     object.Size == 0 && object.Key[len(object.Key)-1:] == "/", // 判断是否为文件夹
-		})
+			Type:         "file",
+			Path:         object.Key,
+			IsFolder:     isFolder,
+		}
+		objects = append(objects, info)
 	}
 	g.JSON(http.StatusOK, domain.RespSuccess(objects))
 }

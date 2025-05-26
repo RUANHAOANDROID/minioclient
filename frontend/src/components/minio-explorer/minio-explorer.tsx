@@ -130,9 +130,19 @@ export default function MinioExplorer() {
         setSearchTerm('');
     };
 
-    const handleNavigate = (path: string) => {
+    const handleNavigate =async (path: string) => {
         setCurrentPath(path);
         setSearchTerm('');
+        setLoading(true);
+        try {
+            const fileList = await listObjects(currentBucket, path);
+            setFiles(fileList);
+        } catch (error) {
+            console.error('Error navigating to path:', error);
+            setFiles([]); // 确保空文件夹也能正确显示
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleRefresh = async () => {
@@ -366,6 +376,10 @@ export default function MinioExplorer() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>
+                                        <LucideReact.User className="mr-2 h-4 w-4"/>
+                                        <span>{t(keycloak.tokenParsed?.preferred_username || 'user.unknown')}</span>
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={handleLogout}>
                                         <LucideReact.LogOut className="mr-2 h-4 w-4"/>
                                         <span>{t('user.logout')}</span>

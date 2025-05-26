@@ -4,6 +4,7 @@ import (
 	"minioclient/api"
 	"minioclient/config"
 	"minioclient/mio"
+	"minioclient/pkg"
 )
 
 func main() {
@@ -17,5 +18,8 @@ func main() {
 		panic(err)
 	}
 	// 启动服务
-	api.Setup(conf, minioClient)
+	err = api.Setup(conf, minioClient)
+	if err != nil {
+		pkg.Log.Error(err.Error())
+	}
 }

@@ -9,42 +9,44 @@ import (
 	"minioclient/config"
 	"minioclient/domain"
 	"net/http"
+	"time"
 )
 
 type FileController struct {
 	MinioClient *minio.Client
 	Conf        *config.Config
 }
+type SimpleObjectInfo struct {
+	Key          string    `json:"key"`
+	Name         string    `json:"name"`
+	LastModified time.Time `json:"lastModified"`
+	Size         int64     `json:"size"`
+	Type         string    `json:"type"` // FileType 可用 string 表示
+	Path         string    `json:"path"`
+	IsFolder     bool      `json:"isFolder"`
+}
 
 func (c FileController) List(g *gin.Context) {
+	bucket := g.GetString("bucket")
+	prefix := g.DefaultQuery("prefix", "") // 从URL参数获取prefix
+	options := minio.ListObjectsOptions{Prefix: prefix}
+	objectsCh := c.MinioClient.ListObjects(g, bucket, options)
 
-	type request struct {
-		Prefix string `json:"prefix"`
-		Suffix string `json:"suffix"`
-	}
-	var req request
-	err := g.ShouldBindJSON(&req)
-	if err != nil {
-		g.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	fmt.Println(req)
-	options := minio.ListObjectsOptions{Recursive: true}
-	if req.Prefix != "" {
-		options.Prefix = req.Prefix
-	}
-	objectsCh := c.MinioClient.ListObjects(g, c.Conf.MinIO.Bucket, options)
-
-	var objects []string
+	var objects []SimpleObjectInfo
 	for object := range objectsCh {
 		if object.Err != nil {
 			g.JSON(http.StatusInternalServerError, domain.RespError(object.Err.Error()))
 			return
 		}
-		if req.Suffix != object.Key[len(object.Key)-len(req.Suffix):] {
-			continue
-		}
-		objects = append(objects, object.Key)
+		objects = append(objects, SimpleObjectInfo{
+			Key:          object.ETag,
+			Name:         object.Key,
+			LastModified: object.LastModified,
+			Size:         object.Size,
+			Type:         "file",                                                    // 这里可根据实际类型判断赋值
+			Path:         object.Key,                                                // 或根据需要拼接路径
+			IsFolder:     object.Size == 0 && object.Key[len(object.Key)-1:] == "/", // 判断是否为文件夹
+		})
 	}
 	g.JSON(http.StatusOK, domain.RespSuccess(objects))
 }
@@ -52,7 +54,9 @@ func (c FileController) List(g *gin.Context) {
 func (c FileController) Download(g *gin.Context) {
 	objName := g.Param("name")
 	// 下载对象
-	object, err := c.MinioClient.GetObject(g, c.Conf.MinIO.Bucket, objName, minio.GetObjectOptions{})
+	bucket := c.Conf.MinIO.Bucket
+	options := minio.GetObjectOptions{}
+	object, err := c.MinioClient.GetObject(g, bucket, objName, options)
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, domain.RespError(err.Error()))
 	}
@@ -74,6 +78,33 @@ func (c FileController) Download(g *gin.Context) {
 	g.Data(http.StatusOK, "application/octet-stream", buffer.Bytes())
 }
 
+func (c FileController) DownloadWithProgress(g *gin.Context) {
+	objName := g.Param("name")
+	bucket := c.Conf.MinIO.Bucket
+	options := minio.GetObjectOptions{}
+	object, err := c.MinioClient.GetObject(g, bucket, objName, options)
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, domain.RespError(err.Error()))
+		return
+	}
+	defer object.Close()
+
+	// 获取对象信息以设置 Content-Length
+	stat, err := object.Stat()
+	if err != nil {
+		g.JSON(http.StatusInternalServerError, domain.RespError(err.Error()))
+		return
+	}
+	g.Header("Content-Disposition", "attachment; filename=\""+objName+"\"")
+	g.Header("Content-Type", "application/octet-stream")
+	g.Header("Content-Length", fmt.Sprintf("%d", stat.Size))
+
+	// 流式传输文件内容
+	if _, err := io.Copy(g.Writer, object); err != nil {
+		g.JSON(http.StatusInternalServerError, domain.RespError(err.Error()))
+		return
+	}
+}
 func (c FileController) Delete(g *gin.Context) {
 
 }

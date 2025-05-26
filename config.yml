@@ -3,13 +3,13 @@ app:
   version: '1.0.0'
 
 options:
-  port: ":8989"
+  port: ":80"
   timeout: 10s
 
 minio:
   address: "192.168.8.6:9768"
-  accessKey: "X4flpuxB4O6jyoKLXbtK"
-  secretKey: "xWNz5hdaWTl0rZCumWxw3WqwnJwfnPM9rpykh0Kk"
+  accessKey: "KGoLjPOAIGL3lWImIrVv"
+  secretKey: "65DSz5AMWyqmyfEpboFKSWaVorgz1NjzzIaQ1heA"
   bucket: "uchi"
   token: ""
 

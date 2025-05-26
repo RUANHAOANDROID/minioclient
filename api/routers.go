@@ -15,8 +15,9 @@ func NewFileRouter(group *gin.RouterGroup, minioClient *minio.Client, conf *conf
 		MinioClient: minioClient,
 		Conf:        conf,
 	}
-	group.POST("/List", fc.List)
-	group.GET("/Download/:oid", fc.Download)
-	group.POST("/Delete/:oid", fc.Delete)
-	group.POST("/Upload/:oid", fc.Upload)
+	group.GET("/list", fc.List)
+	group.GET("/download/:oid", fc.Download)
+	group.GET("/download-p/:oid", fc.DownloadWithProgress)
+	group.DELETE("/delete/:oid", fc.Delete)
+	group.POST("/upload/:oid", fc.Upload)
 }

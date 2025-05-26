@@ -3,9 +3,5 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-#    volumes:
-#      - .:/app  # 将当前代码目录挂载到容器内
-#      - ./build/cache/:/root/.cache/go-build # go build cache
-#      - ./build/conf/:/etc/wireguard # config file
     ports:
       - "55680:80/tcp"

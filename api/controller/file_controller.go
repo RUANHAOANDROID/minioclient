@@ -48,12 +48,18 @@ func (c FileController) List(g *gin.Context) {
 			}
 		}
 		isFolder := object.Size == 0 && strings.HasSuffix(object.Key, "/")
+		var fileType string
+		if isFolder {
+			fileType = "folder"
+		} else {
+			fileType = pkg.GetFileType(object.Key)
+		}
 		info := SimpleObjectInfo{
 			Key:          object.Key,
 			Name:         path.Base(object.Key),
 			LastModified: object.LastModified,
 			Size:         object.Size,
-			Type:         "file",
+			Type:         fileType,
 			Path:         object.Key,
 			IsFolder:     isFolder,
 		}

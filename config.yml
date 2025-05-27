@@ -7,7 +7,8 @@ options:
   timeout: 10s
 
 minio:
-  address: "192.168.8.6:9768"
+  #address: "192.168.8.6:9768"
+  address: "minio:9000"
   accessKey: "KGoLjPOAIGL3lWImIrVv"
   secretKey: "65DSz5AMWyqmyfEpboFKSWaVorgz1NjzzIaQ1heA"
   bucket: "uchi"

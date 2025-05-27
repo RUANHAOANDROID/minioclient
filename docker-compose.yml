@@ -8,6 +8,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "56776:80"
+    networks:
+      - dev
     environment:
       - ENV=dev
     command: " ./runner"
+networks:
+  dev:
+    name: dev
+    driver: bridge
+    external: true
